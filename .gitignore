@@ -1,0 +1,25 @@
+# Logs and dependencies
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Environment variables & secrets (JANGAN DI-PUSH KE GITHUB)
+.env
+.env.*
+!.env.example
+
+# Large binary files
+cloudflared.exe
+*.exe
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

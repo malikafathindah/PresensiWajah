@@ -1,0 +1,20 @@
+{
+  "name": "presensi-fath-indah",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "tunnel": "cloudflared.exe tunnel --url http://localhost:5173",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.48.1",
+    "@vladmandic/face-api": "^1.7.15",
+    "canvas-confetti": "^1.9.4"
+  },
+  "devDependencies": {
+    "vite": "^6.1.0"
+  }
+}
