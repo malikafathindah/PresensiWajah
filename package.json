@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "node -e \"const fs=require('fs'); fs.copyFileSync('index.template.html', 'index.html');\" && vite",
     "tunnel": "cloudflared.exe tunnel --url http://localhost:5173",
-    "build": "vite build",
+    "build": "node -e \"const fs=require('fs'); fs.copyFileSync('index.template.html', 'index.html');\" && vite build && node -e \"const fs=require('fs'); fs.cpSync('dist/assets', 'assets', {recursive: true}); fs.copyFileSync('dist/index.html', 'index.html');\"",
     "preview": "vite preview"
   },
   "dependencies": {
