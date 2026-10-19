@@ -235,12 +235,12 @@ function startFaceLoginLoop() {
     try {
       const descriptor = await getFaceDescriptorFromVideo(loginFaceVideo);
       if (descriptor) {
-        const match = findBestMatch(descriptor, registeredUsers, 0.56);
+        const result = findBestMatch(descriptor, registeredUsers, 0.60);
 
-        if (match) {
+        if (result && result.isMatch) {
           isProcessingLoginMatch = true;
-          const user = match.user;
-          setLoginFaceBadge(`✓ Terotorisasi: ${user.nama} (${match.confidence}%)`, 'success');
+          const user = result.user;
+          setLoginFaceBadge(`✓ Terotorisasi: ${user.nama} (${result.confidence}%)`, 'success');
           confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
 
           // Catat log login
@@ -253,6 +253,8 @@ function startFaceLoginLoop() {
             stopFaceLoginScanner();
             enterDashboard();
           }, 900);
+        } else if (result && result.user && result.distance < 0.72) {
+          setLoginFaceBadge(`Mendeteksi ${result.user.nama} (${result.confidence}% mirip). Posisikan wajah tegak lurus kamera...`, 'warning');
         } else {
           setLoginFaceBadge('Wajah terdeteksi, namun belum cocok dengan data karyawan...', 'warning');
         }

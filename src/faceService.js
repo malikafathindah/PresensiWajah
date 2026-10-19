@@ -97,7 +97,7 @@ export function isFaceMatch(descriptorA, descriptorB, threshold = 0.56) {
   };
 }
 
-export function findBestMatch(currentDescriptor, usersList, threshold = 0.56) {
+export function findBestMatch(currentDescriptor, usersList, threshold = 0.60) {
   const curr = parseDescriptor(currentDescriptor);
   if (!curr || !usersList || usersList.length === 0) return null;
 
@@ -116,14 +116,17 @@ export function findBestMatch(currentDescriptor, usersList, threshold = 0.56) {
     }
   }
 
-  if (bestUser && minDistance <= threshold) {
-    const confidence = Math.max(10, Math.min(100, Math.round((1 - (minDistance / 0.8)) * 100)));
-    return {
-      user: bestUser,
-      distance: minDistance,
-      confidence
-    };
-  }
+  if (!bestUser) return null;
 
-  return null;
+  const confidence = Math.max(10, Math.min(100, Math.round((1 - (minDistance / 0.8)) * 100)));
+  const isMatch = minDistance <= threshold;
+
+  console.log(`[Face Matching] Karyawan: ${bestUser.nama} | Jarak: ${minDistance.toFixed(3)} | Threshold: ${threshold} | Cocok: ${isMatch}`);
+
+  return {
+    user: bestUser,
+    distance: minDistance,
+    confidence,
+    isMatch
+  };
 }
