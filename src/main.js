@@ -436,18 +436,18 @@ async function sendAbsenData(tipe, lat, lng, mapsUrl) {
   try {
     const { error } = await supabase.from('absensi').insert([
       {
-        'Timestamp': jkt.iso,
-        'NamaUser': currentUser.user_id,
-        'NamaKaryawan': currentUser.nama,
-        'Tipe': tipe,
-        'Latitude': lat,
-        'Longitude': lng,
-        'Link Google Maps': mapsUrl,
-        'Tanggal': String(tanggalHariIni),
-        'Kode': 'H',
-        'bulan': String(bulanHariIni),
-        'Tahun': String(tahunHariIni),
-        'catatan': `Presensi ${tipe} (Terotorisasi Biometrik)`
+        timestamp: jkt.iso,
+        nama_user: currentUser.user_id,
+        nama_karyawan: currentUser.nama,
+        tipe: tipe,
+        latitude: lat,
+        longitude: lng,
+        link_google_maps: mapsUrl,
+        tanggal: tanggalHariIni,
+        kode: 'H',
+        bulan: bulanHariIni,
+        tahun: tahunHariIni,
+        catatan: `Presensi ${tipe} (Terotorisasi Biometrik)`
       }
     ]);
 
@@ -577,18 +577,18 @@ async function sendIzinData(alasan, lat, lng, mapsUrl, photoSnapshot) {
 
     await supabase.from('absensi').insert([
       {
-        'Timestamp': jkt.iso,
-        'NamaUser': currentUser.user_id,
-        'NamaKaryawan': currentUser.nama,
-        'Tipe': tipeAbsen,
-        'Latitude': lat,
-        'Longitude': lng,
-        'Link Google Maps': mapsUrl,
-        'Tanggal': String(tanggalHariIni),
-        'Kode': statusHadir,
-        'bulan': String(bulanHariIni),
-        'Tahun': String(tahunHariIni),
-        'catatan': `Laporan Izin: ${alasan}`
+        timestamp: jkt.iso,
+        nama_user: currentUser.user_id,
+        nama_karyawan: currentUser.nama,
+        tipe: tipeAbsen,
+        latitude: lat,
+        longitude: lng,
+        link_google_maps: mapsUrl,
+        tanggal: tanggalHariIni,
+        kode: statusHadir,
+        bulan: bulanHariIni,
+        tahun: tahunHariIni,
+        catatan: `Laporan Izin: ${alasan}`
       }
     ]);
 
@@ -627,18 +627,18 @@ async function loadRiwayat() {
     const { data: rows, error } = await supabase
       .from('absensi')
       .select('*')
-      .ilike('NamaUser', currentUser.user_id)
+      .ilike('nama_user', currentUser.user_id)
       .eq('bulan', String(currentMonth))
-      .eq('Tahun', String(currentYear))
-      .order('Timestamp', { ascending: false })
+      .eq('tahun', String(currentYear))
+      .order('timestamp', { ascending: false, nullsFirst: false })
       .limit(50);
 
     if (error) throw error;
 
     // Pastikan urutan selalu terurut descending (terbaru di paling atas)
     const sortedRows = (rows || []).slice().sort((a, b) => {
-      const timeA = new Date(a.Timestamp || a.timestamp || a.created_at || 0).getTime();
-      const timeB = new Date(b.Timestamp || b.timestamp || b.created_at || 0).getTime();
+      const timeA = new Date(a.timestamp || a.Timestamp || a.created_at || 0).getTime();
+      const timeB = new Date(b.timestamp || b.Timestamp || b.created_at || 0).getTime();
       return timeB - timeA;
     });
 
