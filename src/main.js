@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js';
-import { loadFaceModels, getFaceDescriptorFromVideo, captureSnapshot, findBestMatch, isFaceMatch } from './faceService.js';
+import { loadFaceModels, getFaceDescriptorFromVideo, captureSnapshot, findBestMatch, isFaceMatch, parseDescriptor } from './faceService.js';
 import confetti from 'canvas-confetti';
 
 // State
@@ -153,7 +153,13 @@ async function loadRegisteredUsersFromDB() {
       .not('face_descriptor', 'is', null);
 
     if (error) throw error;
-    registeredUsers = data || [];
+    registeredUsers = (data || [])
+      .map(u => ({
+        ...u,
+        face_descriptor: parseDescriptor(u.face_descriptor)
+      }))
+      .filter(u => Array.isArray(u.face_descriptor) && u.face_descriptor.length > 0);
+
     console.log(`Berhasil memuat ${registeredUsers.length} karyawan dengan wajah terdaftar.`);
   } catch (err) {
     console.warn('Gagal memuat registered users:', err);
@@ -229,7 +235,7 @@ function startFaceLoginLoop() {
     try {
       const descriptor = await getFaceDescriptorFromVideo(loginFaceVideo);
       if (descriptor) {
-        const match = findBestMatch(descriptor, registeredUsers, 0.52);
+        const match = findBestMatch(descriptor, registeredUsers, 0.56);
 
         if (match) {
           isProcessingLoginMatch = true;
@@ -303,7 +309,9 @@ async function handleManualLogin() {
     catatLogLogin(user.user_id, user.nama);
     updateUserProfileUI();
 
-    const hasFace = user.face_descriptor && Array.isArray(user.face_descriptor) && user.face_descriptor.length > 0;
+    const userDesc = parseDescriptor(user.face_descriptor);
+    user.face_descriptor = userDesc;
+    const hasFace = Array.isArray(userDesc) && userDesc.length > 0;
 
     if (!hasFace) {
       // Jika wajah belum terdaftar, minta registrasi wajah awal
@@ -348,7 +356,8 @@ function updateUserProfileUI() {
   userGreeting.innerText = currentUser.nama;
   userSub.innerText = `ID: ${currentUser.user_id} • ${currentUser.jabatan || 'Karyawan'}`;
 
-  const hasFace = currentUser.face_descriptor && Array.isArray(currentUser.face_descriptor) && currentUser.face_descriptor.length > 0;
+  const userDesc = parseDescriptor(currentUser.face_descriptor);
+  const hasFace = Array.isArray(userDesc) && userDesc.length > 0;
   
   if (currentUser.foto_wajah) {
     userAvatarContainer.innerHTML = `<img src="${currentUser.foto_wajah}" alt="${currentUser.nama}" class="avatar-img" />`;

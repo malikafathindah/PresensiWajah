@@ -59,14 +59,36 @@ export function captureSnapshot(videoElement, maxWidth = 320) {
   return canvas.toDataURL('image/jpeg', 0.85);
 }
 
-export function calculateDistance(descriptorA, descriptorB) {
-  if (!descriptorA || !descriptorB) return 1.0;
-  return faceapi.euclideanDistance(descriptorA, descriptorB);
+export function parseDescriptor(raw) {
+  if (!raw) return null;
+  if (Array.isArray(raw)) return raw;
+  if (typeof raw === 'string') {
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    } catch (e) {
+      return null;
+    }
+  }
+  return null;
 }
 
-export function isFaceMatch(descriptorA, descriptorB, threshold = 0.55) {
-  if (!descriptorA || !descriptorB) return { match: false, distance: 1.0, confidence: 0 };
-  const distance = calculateDistance(descriptorA, descriptorB);
+export function calculateDistance(descriptorA, descriptorB) {
+  const arrA = parseDescriptor(descriptorA);
+  const arrB = parseDescriptor(descriptorB);
+  if (!arrA || !arrB) return 1.0;
+  try {
+    return faceapi.euclideanDistance(arrA, arrB);
+  } catch (e) {
+    return 1.0;
+  }
+}
+
+export function isFaceMatch(descriptorA, descriptorB, threshold = 0.56) {
+  const arrA = parseDescriptor(descriptorA);
+  const arrB = parseDescriptor(descriptorB);
+  if (!arrA || !arrB) return { match: false, distance: 1.0, confidence: 0 };
+  const distance = calculateDistance(arrA, arrB);
   const confidence = Math.max(0, Math.min(100, Math.round((1 - (distance / 0.8)) * 100)));
   return {
     match: distance <= threshold,
@@ -75,17 +97,19 @@ export function isFaceMatch(descriptorA, descriptorB, threshold = 0.55) {
   };
 }
 
-export function findBestMatch(currentDescriptor, usersList, threshold = 0.55) {
-  if (!currentDescriptor || !usersList || usersList.length === 0) return null;
+export function findBestMatch(currentDescriptor, usersList, threshold = 0.56) {
+  const curr = parseDescriptor(currentDescriptor);
+  if (!curr || !usersList || usersList.length === 0) return null;
 
   let bestUser = null;
   let minDistance = 1.0;
 
   for (const user of usersList) {
-    if (!user.face_descriptor || !Array.isArray(user.face_descriptor) || user.face_descriptor.length === 0) {
+    const desc = parseDescriptor(user.face_descriptor);
+    if (!desc || desc.length === 0) {
       continue;
     }
-    const dist = calculateDistance(currentDescriptor, user.face_descriptor);
+    const dist = calculateDistance(curr, desc);
     if (dist < minDistance) {
       minDistance = dist;
       bestUser = user;
