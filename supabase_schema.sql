@@ -12,13 +12,13 @@ CREATE TABLE IF NOT EXISTS public.users (
     jabatan VARCHAR(100) DEFAULT 'Karyawan',
     foto_wajah TEXT,           -- Foto wajah (Base64)
     face_descriptor JSONB,     -- 128 vektor biometrik wajah (NULL jika belum scan wajah)
-    created_at TIMESTAMPTZ DEFAULT TIMEZONE('Asia/Jakarta', NOW())
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- 2. Tabel Absensi (Presensi Masuk, Pulang, dan Izin)
 CREATE TABLE IF NOT EXISTS public.absensi (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    timestamp TIMESTAMPTZ DEFAULT TIMEZONE('Asia/Jakarta', NOW()),
+    timestamp TIMESTAMPTZ DEFAULT NOW(),
     nama_user VARCHAR(50) NOT NULL,
     nama_karyawan VARCHAR(150) NOT NULL,
     tipe VARCHAR(100) NOT NULL,           -- 'Datang', 'Pulang', 'Izin (Sakit)', dll.
@@ -31,24 +31,24 @@ CREATE TABLE IF NOT EXISTS public.absensi (
     tahun INT,
     foto_bukti TEXT,                      -- Foto bukti saat absen
     catatan TEXT,
-    created_at TIMESTAMPTZ DEFAULT TIMEZONE('Asia/Jakarta', NOW())
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- 3. Tabel Log Login (Mencatat Setiap Sesi Login Karyawan)
 CREATE TABLE IF NOT EXISTS public.log_login (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    waktu_login TIMESTAMPTZ DEFAULT TIMEZONE('Asia/Jakarta', NOW()),
+    waktu_login TIMESTAMPTZ DEFAULT NOW(),
     user_id VARCHAR(50) NOT NULL,
     nama_karyawan VARCHAR(150) NOT NULL,
     device TEXT,
     keterangan VARCHAR(100) DEFAULT 'Berhasil Login',
-    created_at TIMESTAMPTZ DEFAULT TIMEZONE('Asia/Jakarta', NOW())
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- 4. Tabel Izin (Laporan Tidak Masuk / Izin / Sakit / Cuti)
 CREATE TABLE IF NOT EXISTS public.izin (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    timestamp TIMESTAMPTZ DEFAULT TIMEZONE('Asia/Jakarta', NOW()),
+    timestamp TIMESTAMPTZ DEFAULT NOW(),
     user_id VARCHAR(50) NOT NULL,
     nama_karyawan VARCHAR(150) NOT NULL,
     alasan TEXT NOT NULL,
@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS public.izin (
     latitude VARCHAR(50) DEFAULT 'Tidak terdeteksi',
     longitude VARCHAR(50) DEFAULT 'Tidak terdeteksi',
     maps_url TEXT DEFAULT '-',
-    created_at TIMESTAMPTZ DEFAULT TIMEZONE('Asia/Jakarta', NOW())
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- 5. Buat Indeks untuk Mempercepat Pencarian Data

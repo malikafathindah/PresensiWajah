@@ -71,12 +71,45 @@ const btnSkipFace = document.getElementById('btnSkipFace');
 let modalCameraStream = null;
 
 // ==========================================
-// 1. DIGITAL CLOCK
+// HELPER: ZONA WAKTU AREA JAKARTA (WIB / UTC+7)
+// ==========================================
+function getJakartaNow(date = new Date()) {
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Jakarta',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  });
+  const parts = formatter.formatToParts(date);
+  const map = {};
+  parts.forEach(p => { map[p.type] = p.value; });
+
+  const hour = map.hour === '24' ? '00' : map.hour;
+  // Format persis seperti format created_at di Supabase (+00:00)
+  const isoJakarta = `${map.year}-${map.month}-${map.day}T${hour}:${map.minute}:${map.second}+00:00`;
+
+  return {
+    year: parseInt(map.year, 10),
+    month: parseInt(map.month, 10),
+    day: parseInt(map.day, 10),
+    hour: hour,
+    minute: map.minute,
+    second: map.second,
+    iso: isoJakarta
+  };
+}
+
+// ==========================================
+// 1. DIGITAL CLOCK (AREA JAKARTA / WIB)
 // ==========================================
 function updateClock() {
   const now = new Date();
-  const timeStr = now.toLocaleTimeString('id-ID', { hour12: false });
-  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  const timeStr = now.toLocaleTimeString('id-ID', { hour12: false, timeZone: 'Asia/Jakarta' });
+  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Jakarta' };
   const dateStr = now.toLocaleDateString('id-ID', options);
 
   const liveTime = document.getElementById('liveTime');
@@ -295,8 +328,10 @@ function showLoginAlert(msg) {
 
 async function catatLogLogin(userId, nama) {
   try {
+    const jkt = getJakartaNow();
     await supabase.from('log_login').insert([
       {
+        waktu_login: jkt.iso,
         user_id: userId,
         nama_karyawan: nama,
         device: navigator.userAgent,
@@ -382,14 +417,15 @@ async function handlePresensiAction(tipe) {
 }
 
 async function sendAbsenData(tipe, lat, lng, mapsUrl) {
-  const now = new Date();
-  const tanggalHariIni = now.getDate();
-  const bulanHariIni = now.getMonth() + 1;
-  const tahunHariIni = now.getFullYear();
+  const jkt = getJakartaNow();
+  const tanggalHariIni = jkt.day;
+  const bulanHariIni = jkt.month;
+  const tahunHariIni = jkt.year;
 
   try {
     const { error } = await supabase.from('absensi').insert([
       {
+        timestamp: jkt.iso,
         nama_user: currentUser.user_id,
         nama_karyawan: currentUser.nama,
         tipe: tipe,
@@ -507,16 +543,17 @@ function submitIzin() {
 }
 
 async function sendIzinData(alasan, lat, lng, mapsUrl, photoSnapshot) {
-  const now = new Date();
-  const tanggalHariIni = now.getDate();
-  const bulanHariIni = now.getMonth() + 1;
-  const tahunHariIni = now.getFullYear();
+  const jkt = getJakartaNow();
+  const tanggalHariIni = jkt.day;
+  const bulanHariIni = jkt.month;
+  const tahunHariIni = jkt.year;
   const statusHadir = alasan ? alasan.charAt(0).toUpperCase() : 'I';
   const tipeAbsen = `Izin (${alasan})`;
 
   try {
     await supabase.from('izin').insert([
       {
+        timestamp: jkt.iso,
         user_id: currentUser.user_id,
         nama_karyawan: currentUser.nama,
         alasan: alasan,
@@ -530,6 +567,7 @@ async function sendIzinData(alasan, lat, lng, mapsUrl, photoSnapshot) {
 
     await supabase.from('absensi').insert([
       {
+        timestamp: jkt.iso,
         nama_user: currentUser.user_id,
         nama_karyawan: currentUser.nama,
         tipe: tipeAbsen,
@@ -572,9 +610,9 @@ async function loadRiwayat() {
 
   riwayatTableBody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #94a3b8; padding: 14px;">Memuat riwayat terbaru...</td></tr>';
 
-  const now = new Date();
-  const currentMonth = now.getMonth() + 1;
-  const currentYear = now.getFullYear();
+  const jkt = getJakartaNow();
+  const currentMonth = jkt.month;
+  const currentYear = jkt.year;
 
   try {
     const { data: rows, error } = await supabase
@@ -583,15 +621,47 @@ async function loadRiwayat() {
       .ilike('nama_user', currentUser.user_id)
       .eq('bulan', currentMonth)
       .eq('tahun', currentYear)
-      .order('timestamp', { ascending: false })
+      .order('timestamp', { ascending: false, nullsFirst: false })
+      .order('created_at', { ascending: false })
       .limit(50);
 
     if (error) throw error;
-    renderRiwayat(rows);
+
+    // Pastikan urutan selalu terurut descending (terbaru di paling atas)
+    const sortedRows = (rows || []).slice().sort((a, b) => {
+      const timeA = new Date(a.timestamp || a.created_at || 0).getTime();
+      const timeB = new Date(b.timestamp || b.created_at || 0).getTime();
+      return timeB - timeA;
+    });
+
+    renderRiwayat(sortedRows);
   } catch (err) {
     console.error('Gagal memuat riwayat:', err);
     riwayatTableBody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #ef4444; padding: 14px;">Gagal memuat riwayat: ${err.message}</td></tr>`;
   }
+}
+
+function formatWaktuRiwayat(dateInput) {
+  if (!dateInput) return '-';
+  const str = String(dateInput);
+  const match = str.match(/(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2}):(\d{2})/);
+  if (match) {
+    const [_, yyyy, mm, dd, hh, min, ss] = match;
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    const mmm = months[parseInt(mm, 10) - 1] || mm;
+    const yy = yyyy.slice(-2);
+    return `${dd} ${mmm} ${yy} ${hh}:${min}:${ss}`;
+  }
+  const dt = new Date(dateInput);
+  if (isNaN(dt.getTime())) return str;
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+  const dd = String(dt.getUTCDate()).padStart(2, '0');
+  const mmm = months[dt.getUTCMonth()];
+  const yy = String(dt.getUTCFullYear()).slice(-2);
+  const hh = String(dt.getUTCHours()).padStart(2, '0');
+  const mm = String(dt.getUTCMinutes()).padStart(2, '0');
+  const ss = String(dt.getUTCSeconds()).padStart(2, '0');
+  return `${dd} ${mmm} ${yy} ${hh}:${mm}:${ss}`;
 }
 
 function renderRiwayat(rows) {
@@ -603,16 +673,9 @@ function renderRiwayat(rows) {
   let html = '';
   rows.forEach((r) => {
     let dateFormatted = '-';
-    if (r.timestamp) {
-      const dt = new Date(r.timestamp);
-      dateFormatted = dt.toLocaleString('id-ID', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-      });
+    const rawTime = r.timestamp || r.created_at;
+    if (rawTime) {
+      dateFormatted = formatWaktuRiwayat(rawTime);
     }
 
     let badgeClass = 'badge-tipe';
