@@ -5,8 +5,8 @@ Aplikasi presensi kehadiran karyawan modern berbasis **AI Face Recognition (Biom
 ---
 
 ## 🚀 Live Demo & Akses Aplikasi
-- **Aplikasi Online (GitHub Pages)**: [https://malikafathindah.github.io/presensi-wajah/](https://malikafathindah.github.io/presensi-wajah/)
-- **Repository GitHub**: [https://github.com/malikafathindah/presensi-wajah](https://github.com/malikafathindah/presensi-wajah)
+- **Aplikasi Online (GitHub Pages)**: [https://malikafathindah.github.io/ProjectPresensiWajah/](https://malikafathindah.github.io/ProjectPresensiWajah/)
+- **Repository GitHub**: [https://github.com/malikafathindah/ProjectPresensiWajah](https://github.com/malikafathindah/ProjectPresensiWajah)
 
 ---
 
@@ -38,8 +38,8 @@ Struktur tabel di Supabase:
 
 ### 1. Clone Repository
 ```bash
-git clone https://github.com/malikafathindah/presensi-wajah.git
-cd presensi-wajah
+git clone https://github.com/malikafathindah/ProjectPresensiWajah.git
+cd ProjectPresensiWajah
 ```
 
 ### 2. Install Dependensi
