@@ -69,7 +69,19 @@ Buka browser pada `http://localhost:5173`.
 ```bash
 npm run build
 ```
-Hasil build siap saji akan berada di folder `/dist`.
+Hasil build siap saji akan berada di folder `/dist` dan otomatis tersinkronisasi ke root.
+
+### 6. Memperbarui ke GitHub (1-Klik Praktis)
+Jika Anda selesai mengubah kode dan ingin memperbarui website GitHub Pages:
+- **Cara 1 (Paling Mudah)**: Cukup klik 2x file [`update_github.bat`](./update_github.bat) di folder proyek ini.
+- **Cara 2 (Terminal)**:
+  ```bash
+  npm run build
+  git add .
+  git commit -m "Update aplikasi"
+  git push origin main
+  ```
+Dalam ~1 menit, situs GitHub Pages akan ter-update otomatis secara online.
 
 ---
 
