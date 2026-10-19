@@ -84,7 +84,7 @@ export function calculateDistance(descriptorA, descriptorB) {
   }
 }
 
-export function isFaceMatch(descriptorA, descriptorB, threshold = 0.56) {
+export function isFaceMatch(descriptorA, descriptorB, threshold = 0.62) {
   const arrA = parseDescriptor(descriptorA);
   const arrB = parseDescriptor(descriptorB);
   if (!arrA || !arrB) return { match: false, distance: 1.0, confidence: 0 };
@@ -97,7 +97,7 @@ export function isFaceMatch(descriptorA, descriptorB, threshold = 0.56) {
   };
 }
 
-export function findBestMatch(currentDescriptor, usersList, threshold = 0.60) {
+export function findBestMatch(currentDescriptor, usersList, threshold = 0.62) {
   const curr = parseDescriptor(currentDescriptor);
   if (!curr || !usersList || usersList.length === 0) return null;
 

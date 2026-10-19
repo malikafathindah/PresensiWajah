@@ -191,11 +191,11 @@ async function startFaceLoginScanner() {
     await loadRegisteredUsersFromDB();
 
     if (registeredUsers.length === 0) {
-      setLoginFaceBadge('Belum ada wajah terdaftar di database. Silakan login manual untuk mendaftarkan wajah.', 'warning');
+      setLoginFaceBadge('Belum ada wajah terdaftar di database Supabase. Silakan login manual untuk mendaftarkan wajah.', 'warning');
       return;
     }
 
-    setLoginFaceBadge('Arahkan wajah ke kamera untuk verifikasi...', 'normal');
+    setLoginFaceBadge(`✓ Siap! ${registeredUsers.length} data wajah termuat dari Supabase. Arahkan wajah ke kamera...`, 'normal');
     startFaceLoginLoop();
   } catch (err) {
     console.warn('Face login scanner error:', err);
@@ -235,7 +235,7 @@ function startFaceLoginLoop() {
     try {
       const descriptor = await getFaceDescriptorFromVideo(loginFaceVideo);
       if (descriptor) {
-        const result = findBestMatch(descriptor, registeredUsers, 0.60);
+        const result = findBestMatch(descriptor, registeredUsers, 0.62);
 
         if (result && result.isMatch) {
           isProcessingLoginMatch = true;
@@ -253,10 +253,10 @@ function startFaceLoginLoop() {
             stopFaceLoginScanner();
             enterDashboard();
           }, 900);
-        } else if (result && result.user && result.distance < 0.72) {
-          setLoginFaceBadge(`Mendeteksi ${result.user.nama} (${result.confidence}% mirip). Posisikan wajah tegak lurus kamera...`, 'warning');
+        } else if (result && result.user) {
+          setLoginFaceBadge(`Mendeteksi ${result.user.nama} (${result.confidence}% mirip). Posisikan wajah tegak lurus...`, 'warning');
         } else {
-          setLoginFaceBadge('Wajah terdeteksi, namun belum cocok dengan data karyawan...', 'warning');
+          setLoginFaceBadge('Wajah terdeteksi, posisikan lurus di dalam lingkaran kamera...', 'normal');
         }
       } else {
         setLoginFaceBadge('Arahkan wajah Anda ke dalam lingkaran kamera...', 'normal');
