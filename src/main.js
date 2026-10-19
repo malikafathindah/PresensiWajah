@@ -436,19 +436,18 @@ async function sendAbsenData(tipe, lat, lng, mapsUrl) {
   try {
     const { error } = await supabase.from('absensi').insert([
       {
-        timestamp: jkt.iso,
-        nama_user: currentUser.user_id,
-        nama_karyawan: currentUser.nama,
-        tipe: tipe,
-        latitude: lat,
-        longitude: lng,
-        link_google_maps: mapsUrl,
-        tanggal: tanggalHariIni,
-        kode: 'H',
-        bulan: bulanHariIni,
-        tahun: tahunHariIni,
-        foto_bukti: currentUser.foto_wajah || null,
-        catatan: `Presensi ${tipe} (Terotorisasi Biometrik)`
+        'Timestamp': jkt.iso,
+        'NamaUser': currentUser.user_id,
+        'NamaKaryawan': currentUser.nama,
+        'Tipe': tipe,
+        'Latitude': lat,
+        'Longitude': lng,
+        'Link Google Maps': mapsUrl,
+        'Tanggal': String(tanggalHariIni),
+        'Kode': 'H',
+        'bulan': String(bulanHariIni),
+        'Tahun': String(tahunHariIni),
+        'catatan': `Presensi ${tipe} (Terotorisasi Biometrik)`
       }
     ]);
 
@@ -578,19 +577,18 @@ async function sendIzinData(alasan, lat, lng, mapsUrl, photoSnapshot) {
 
     await supabase.from('absensi').insert([
       {
-        timestamp: jkt.iso,
-        nama_user: currentUser.user_id,
-        nama_karyawan: currentUser.nama,
-        tipe: tipeAbsen,
-        latitude: lat,
-        longitude: lng,
-        link_google_maps: mapsUrl,
-        tanggal: tanggalHariIni,
-        kode: statusHadir,
-        bulan: bulanHariIni,
-        tahun: tahunHariIni,
-        foto_bukti: photoSnapshot || currentUser.foto_wajah || null,
-        catatan: `Laporan Izin: ${alasan}`
+        'Timestamp': jkt.iso,
+        'NamaUser': currentUser.user_id,
+        'NamaKaryawan': currentUser.nama,
+        'Tipe': tipeAbsen,
+        'Latitude': lat,
+        'Longitude': lng,
+        'Link Google Maps': mapsUrl,
+        'Tanggal': String(tanggalHariIni),
+        'Kode': statusHadir,
+        'bulan': String(bulanHariIni),
+        'Tahun': String(tahunHariIni),
+        'catatan': `Laporan Izin: ${alasan}`
       }
     ]);
 
@@ -629,19 +627,18 @@ async function loadRiwayat() {
     const { data: rows, error } = await supabase
       .from('absensi')
       .select('*')
-      .ilike('nama_user', currentUser.user_id)
-      .eq('bulan', currentMonth)
-      .eq('tahun', currentYear)
-      .order('timestamp', { ascending: false, nullsFirst: false })
-      .order('created_at', { ascending: false })
+      .ilike('NamaUser', currentUser.user_id)
+      .eq('bulan', String(currentMonth))
+      .eq('Tahun', String(currentYear))
+      .order('Timestamp', { ascending: false })
       .limit(50);
 
     if (error) throw error;
 
     // Pastikan urutan selalu terurut descending (terbaru di paling atas)
     const sortedRows = (rows || []).slice().sort((a, b) => {
-      const timeA = new Date(a.timestamp || a.created_at || 0).getTime();
-      const timeB = new Date(b.timestamp || b.created_at || 0).getTime();
+      const timeA = new Date(a.Timestamp || a.timestamp || a.created_at || 0).getTime();
+      const timeB = new Date(b.Timestamp || b.timestamp || b.created_at || 0).getTime();
       return timeB - timeA;
     });
 
@@ -684,25 +681,27 @@ function renderRiwayat(rows) {
   let html = '';
   rows.forEach((r) => {
     let dateFormatted = '-';
-    const rawTime = r.timestamp || r.created_at;
+    const rawTime = r.Timestamp || r.timestamp || r.created_at;
     if (rawTime) {
       dateFormatted = formatWaktuRiwayat(rawTime);
     }
 
+    const tipeAbsen = r.Tipe || r.tipe || '-';
     let badgeClass = 'badge-tipe';
-    if (r.tipe === 'Datang') badgeClass += ' badge-datang';
-    else if (r.tipe === 'Pulang') badgeClass += ' badge-pulang';
+    if (tipeAbsen === 'Datang') badgeClass += ' badge-datang';
+    else if (tipeAbsen === 'Pulang') badgeClass += ' badge-pulang';
     else badgeClass += ' badge-izin';
 
     let mapLink = '<span style="color: #94a3b8;">-</span>';
-    if (r.link_google_maps && r.link_google_maps.startsWith('http')) {
-      mapLink = `<a href="${r.link_google_maps}" target="_blank" rel="noopener noreferrer" class="btn btn-sm" style="padding: 2px 8px; font-size: 0.72rem; background: #e0f2fe; color: #0284c7; text-decoration: none;">📍 Peta</a>`;
+    const maps = r['Link Google Maps'] || r.link_google_maps;
+    if (maps && maps.startsWith('http')) {
+      mapLink = `<a href="${maps}" target="_blank" rel="noopener noreferrer" class="btn btn-sm" style="padding: 2px 8px; font-size: 0.72rem; background: #e0f2fe; color: #0284c7; text-decoration: none;">📍 Peta</a>`;
     }
 
     html += `
       <tr>
         <td style="font-size: 0.78rem; font-variant-numeric: tabular-nums;">${dateFormatted}</td>
-        <td><span class="${badgeClass}">${r.tipe || '-'}</span></td>
+        <td><span class="${badgeClass}">${tipeAbsen}</span></td>
         <td>${mapLink}</td>
       </tr>
     `;
