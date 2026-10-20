@@ -91,6 +91,7 @@ function getJakartaNow(date = new Date()) {
   const hour = map.hour === '24' ? '00' : map.hour;
   // Format persis seperti format created_at di Supabase (+00:00)
   const isoJakarta = `${map.year}-${map.month}-${map.day}T${hour}:${map.minute}:${map.second}+00:00`;
+  const ymdJakarta = `${map.year}-${map.month}-${map.day}`;
 
   return {
     year: parseInt(map.year, 10),
@@ -99,7 +100,8 @@ function getJakartaNow(date = new Date()) {
     hour: hour,
     minute: map.minute,
     second: map.second,
-    iso: isoJakarta
+    iso: isoJakarta,
+    ymd: ymdJakarta
   };
 }
 
@@ -429,7 +431,7 @@ async function handlePresensiAction(tipe) {
 
 async function sendAbsenData(tipe, lat, lng, mapsUrl) {
   const jkt = getJakartaNow();
-  const tanggalHariIni = jkt.day;
+  const tanggalHariIni = jkt.ymd; // Format: yyyy-mm-dd
   const bulanHariIni = jkt.month;
   const tahunHariIni = jkt.year;
 
@@ -554,7 +556,7 @@ function submitIzin() {
 
 async function sendIzinData(alasan, lat, lng, mapsUrl, photoSnapshot) {
   const jkt = getJakartaNow();
-  const tanggalHariIni = jkt.day;
+  const tanggalHariIni = jkt.ymd; // Format: yyyy-mm-dd
   const bulanHariIni = jkt.month;
   const tahunHariIni = jkt.year;
   const statusHadir = alasan ? alasan.charAt(0).toUpperCase() : 'I';
@@ -659,6 +661,14 @@ function formatWaktuRiwayat(dateInput) {
     const mmm = months[parseInt(mm, 10) - 1] || mm;
     const yy = yyyy.slice(-2);
     return `${dd} ${mmm} ${yy} ${hh}:${min}:${ss}`;
+  }
+  const dateOnlyMatch = str.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (dateOnlyMatch) {
+    const [_, yyyy, mm, dd] = dateOnlyMatch;
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    const mmm = months[parseInt(mm, 10) - 1] || mm;
+    const yy = yyyy.slice(-2);
+    return `${dd} ${mmm} ${yy}`;
   }
   const dt = new Date(dateInput);
   if (isNaN(dt.getTime())) return str;

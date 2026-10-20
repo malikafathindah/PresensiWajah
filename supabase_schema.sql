@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS public.absensi (
     latitude VARCHAR(50) DEFAULT 'Tidak terdeteksi',
     longitude VARCHAR(50) DEFAULT 'Tidak terdeteksi',
     link_google_maps TEXT DEFAULT '-',
-    tanggal INT,
+    tanggal DATE,                         -- Format YYYY-MM-DD
     kode VARCHAR(10) DEFAULT 'H',
     bulan INT,
     tahun INT,
